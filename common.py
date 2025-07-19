@@ -12,7 +12,8 @@ def load_data():
     """
     Load the dataset from a CSV file.
     """
-    df = pd.read_csv('fmnist_small.csv')
+    path = "fmnist/fashion-mnist_train.csv"
+    df = pd.read_csv(path)
     df = df.dropna()  # Drop rows with missing values
     return df
 
@@ -41,6 +42,15 @@ def preprocess_data(df):
     X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)  
 
     return X_train, X_test, y_train, y_test
+
+def download_dataset():
+
+    import kagglehub
+
+    # Download latest version
+    path = kagglehub.dataset_download("zalando-research/fashionmnist")
+    return path
+
 
 if __name__ == "__main__":
     df = load_data()

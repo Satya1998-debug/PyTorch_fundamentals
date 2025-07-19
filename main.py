@@ -7,6 +7,13 @@ from config import BATCH_SIZE, EPOCHS, LEARNING_RATE
 
 def main():
 
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
+        print('device MPS is available!!')
+    else:
+        print('Only CPU will be used')
+        device = torch.device("cpu")
+
     eval_mode = True  # Set to True if you want to skip training and just evaluate the model
     train_model = not eval_mode  # If eval_mode is True, we skip training
 
@@ -24,6 +31,7 @@ def main():
 
     # instantiate the model
     model = SimpleNN(num_features=X_train.shape[1], num_classes=len(set(y_train)))
+    model = model.to(device)
 
     # optimizer and loss function
     optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE)
@@ -32,11 +40,14 @@ def main():
     if train_model:
         # training mode
         # training loop
+        model = model.to(device)
         for epoch in range(EPOCHS):
             total_loss = 0.0
             print(f"Epoch {epoch+1}/{EPOCHS}")
             print("-" * 20)
             for batch_idx, (batch_features, batch_labels) in enumerate(train_loader):
+                batch_features = batch_features.to(device)
+                batch_labels = batch_labels.to(device)
                 
                 # forward pass
                 outputs = model(batch_features)
@@ -63,11 +74,13 @@ def main():
     if eval_mode:
         # evaluation and loading the model
         model.load_state_dict(torch.load('simple_nn_model.pth'))
+        model = model.to(device)
         print(model.eval())
         correct = 0
         total = 0
         with torch.no_grad():
             for batch_features, batch_labels in test_loader:
+                batch_features, batch_labels = batch_features.to(device), batch_labels.to(device)
                 outputs = model(batch_features)
                 _, predicted = torch.max(outputs.data, 1) # Get the index of the max log-probability
                 correct += (predicted == batch_labels).sum().item()
